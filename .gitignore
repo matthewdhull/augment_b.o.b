@@ -9,4 +9,4 @@ crowd_compute_requests
 *.egg-info/
 launch.json
 launch_eval.json
-checkpoint.pth.tar
+*.pth.tar
