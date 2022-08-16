@@ -10,7 +10,8 @@ from itertools import product, repeat
 
 import PIL.Image
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+import tensorflow_addons as tfa
 import torchvision.transforms.functional
 from cleverhans.attacks import SPSA
 from cleverhans.model import Model
@@ -18,7 +19,6 @@ from foolbox.attacks import BoundaryAttack as FoolboxBoundaryAttack
 from imagenet_c import corrupt
 from six.moves import xrange
 from unrestricted_advex.utils import suppress_stdout
-
 
 class Attack(object):
   name = None
@@ -456,7 +456,7 @@ def _sparse_softmax_cross_entropy_with_logits_from_numpy(logits_np, labels_np, g
 
 
 def apply_black_border(x, image_height, image_width, border_size):
-  x = tf.image.resize_images(x, (image_width - border_size,
+  x = tf.image.resize(x, (image_width - border_size,
                                  image_height - border_size))
   x = tf.pad(x, [[0, 0],
                  [border_size, border_size],
@@ -480,9 +480,9 @@ def tf_apply_transformation(x, transform, image_height, image_width):
   trans = tf.stack([ones, zeros, -trans_x,
                     zeros, ones, -trans_y,
                     zeros, zeros], axis=1)
-  x = tf.contrib.image.rotate(x, rot, interpolation='BILINEAR')
-  x = tf.contrib.image.transform(x, trans, interpolation='BILINEAR')
-  return tf.image.resize_image_with_crop_or_pad(
+  x = tfa.image.rotate(x, rot, interpolation='BILINEAR')
+  x = tfa.image.transform(x, trans, interpolation='BILINEAR')
+  return tf.image.resize_with_crop_or_pad(
     x, image_height, image_width)
 
 
@@ -518,8 +518,8 @@ class RandomSpatialAttack(Attack):
     # Construct graph for spatial attack
     self.graph = tf.Graph()
     with self.graph.as_default():
-      self._x_for_trans = tf.placeholder(tf.float32, shape=[None] + list(image_shape_hwc))
-      self._t_for_trans = tf.placeholder(tf.float32, shape=[None, 3])
+      self._x_for_trans = tf.compat.v1.placeholder(tf.float32, shape=[None] + list(image_shape_hwc))
+      self._t_for_trans = tf.compat.v1.placeholder(tf.float32, shape=[None, 3])
 
       x = apply_black_border(
         self._x_for_trans,

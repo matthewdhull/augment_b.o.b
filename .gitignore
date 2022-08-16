@@ -5,3 +5,8 @@ crowd_compute_requests
 **/*urls.csv
 
 .pytest*
+*.pyc
+*.egg-info/
+launch.json
+launch_eval.json
+checkpoint.pth.tar

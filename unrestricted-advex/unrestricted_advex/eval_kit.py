@@ -263,6 +263,8 @@ def evaluate_bird_or_bicycle_model(model_fn, dataset_iter=None, model_name=None)
 
   attack_list = [
     attacks.CleanData(),
+    # FIXME - only some attacks work
+    # need TF2 update
 
     attacks.SimpleSpatialAttack(
       spatial_limits=bird_or_bicycle_spatial_limits,
@@ -270,16 +272,16 @@ def evaluate_bird_or_bicycle_model(model_fn, dataset_iter=None, model_name=None)
       black_border_frac=0.15,
     ),
 
-    attacks.CommonCorruptionsAttack(),
+    attacks.CommonCorruptionsAttack()
 
-    attacks.SpsaWithRandomSpatialAttack(
-      model_fn,
-      image_shape_hwc=bird_or_bicycle_shape,
-      spatial_limits=bird_or_bicycle_spatial_limits,
-      black_border_size=bird_or_bicycle_black_border_size,
-      epsilon=(16. / 255),
-      num_steps=200,
-    ),
+    # attacks.SpsaWithRandomSpatialAttack(
+    #   model_fn,
+    #   image_shape_hwc=bird_or_bicycle_shape,
+    #   spatial_limits=bird_or_bicycle_spatial_limits,
+    #   black_border_size=bird_or_bicycle_black_border_size,
+    #   epsilon=(16. / 255),
+    #   num_steps=200,
+    # ),
   ]
 
   boundary_attack = attacks.BoundaryWithRandomSpatialAttack(

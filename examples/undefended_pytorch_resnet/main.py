@@ -302,7 +302,8 @@ def evaluate(model):
   # Workaround: tensorflow claims all the visible
   # GPU memory upon starting. We use hacky patch
   # to disable this feature
-  import tensorflow as tf
+  import tensorflow.compat.v1 as tf
+  
   oldinit = tf.Session.__init__
 
   def myinit(session_object, target='', graph=None, config=None):
