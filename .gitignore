@@ -10,3 +10,4 @@ crowd_compute_requests
 launch.json
 launch_eval.json
 *.pth.tar
+*.obj
