@@ -11,3 +11,7 @@ launch.json
 launch_eval.json
 *.pth.tar
 *.obj
+.vscode/settings.json
+data_generation/augmented/bird/*.jpg
+data_generation/extras/bicycle/extras/bird/*.jpg
+unrestricted-adversarial-examples/bird-or-bicycle/bird_or_bicycle/metadata/train-annotations-bbox.csv
