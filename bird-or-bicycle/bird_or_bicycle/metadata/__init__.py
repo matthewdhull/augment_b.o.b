@@ -13,5 +13,6 @@ NUM_IMAGES_PER_CLASS = {
     'train': 125,
     'test': 125,
     'extras': 13750,
+    'augmented': 25
   }
 }
