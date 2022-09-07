@@ -10,6 +10,7 @@ import multiprocessing
 import random
 from itertools import product, repeat
 import itertools
+from termios import TIOCM_DSR
 import PIL.Image
 import numpy as np
 import torchvision
@@ -41,40 +42,43 @@ def show(imgs):
         axs[0, i].imshow(np.asarray(img))
         axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
-def single_image(path=None)->torch.Tensor:
+def single_image(path=None, resize=224)->torch.Tensor:
     """
     Reads a single image and preprocesses for one-off predictions by b.o.b. model
     """
     im = read_image(path)
     im = T.ToPILImage()(im.to('cpu'))     
     transforms = T.Compose([
-        T.Resize(224),
+        T.Resize(resize),
         T.ToTensor(),
         lambda x: torch.einsum('chw->hwc', [x]),
     ])
-    transformed_im = transforms(im).reshape(1, 224, 224, 3)
+    transformed_im = transforms(im).reshape(1, resize, resize, 3)
     return transformed_im
 
 
-
-if __name__ == "__main__":
-    p = '/nvmescratch/mhull32/unrestricted-adversarial-examples/data_generation/augmented/bicycle/blender_0_black.jpg'
-    im = single_image(p)
-
-
+def bob_model():
     # load pre-trained bird-or-bicycle model
     checkpoint = torch.load('/nvmescratch/mhull32/unrestricted-adversarial-examples/model_zoo/undefended_pytorch_resnet.pth.tar')
     model = getattr(models, checkpoint['arch'])(num_classes=2)
     model = nn.Sequential(nn.BatchNorm2d(num_features=3, affine=False), model)
     model = torch.nn.DataParallel(model).cuda()
     model.load_state_dict(checkpoint['state_dict'])
+    return model
 
-    def wrapped_model(x_np):
-        x_np = x_np.transpose((0, 3, 1, 2))  # from NHWC to NCHW
-        x_t = torch.from_numpy(x_np).cuda()
-        model.eval()
-        with torch.no_grad():
-            return model(x_t).cpu().numpy()
+def wrapped_model(x_np):
+    x_np = x_np.transpose((0, 3, 1, 2))  # from NHWC to NCHW
+    x_t = torch.from_numpy(x_np).cuda()
+    model.eval()
+    with torch.no_grad():
+        return model(x_t).cpu().numpy()
+
+
+
+if __name__ == "__main__":
+    # p = '/nvmescratch/mhull32/unrestricted-adversarial-examples/data_generation/augmented/bicycle/blender_0_black.jpg'
+    # im = single_image(p)
+    model = bob_model()
 
     # point toward augmented data, use split = 'augmented'
     # contains rendered scenes of birds & bikes
@@ -136,7 +140,7 @@ if __name__ == "__main__":
         # unused for now since we aren't running an attack
         # x_adv = attack_fn(model, x_np, y_np) 
         x_adv = x_np
-        logits = wrapped_model(x_adv)
+        logits = wrapped_model(model, x_adv)
         correct = np.equal(logits_to_preds(logits), y_np).astype(np.float32)
         _validate_logits(logits, batch_size=len(x_np))
 
